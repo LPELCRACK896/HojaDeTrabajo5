@@ -1,53 +1,30 @@
 import random
 import math
 import simpy
+#Simulacion de corrida de programas
+escenario=simpy.Environment()
 
-inicio = 20
-numero_cajero = 1
-tiempo_min = 5
-tiempo_max = 15
-tiempo_espera = 0
-tiempo_total = 0
-tiempo_final = 0
-total_usuarios = 5
-tiempo_llegada = 15
+memoria_ram_disponible== simpy.Container(escenario, init=100, capacity=100)
+registros_para_instrucciones_disponible = 15
 
-def servicio(usuario):
-    global tiempo_total 
-    aleatorio = random.random()
-    tiempo = tiempo_max - tiempo_min
-    tiempo_atencion = tiempo_min + (tiempo * aleatorio)
-    yield escenario.timeout(tiempo_atencion)
-    print("El %s se atendio en %.2f minutos" %(usuario, tiempo_atencion))
-    tiempo_total = tiempo_total + tiempo_atencion
+def onNew(): #Manda a siguiente proceso o asigna tiempo de espera
+    global memoria_ram_disponible
+    aleatorio_ram= random.randint(1,10)
+    if(aleatorio_ram<=memoria_ram_disponible):
+        memoria_ram_disponible=memoria_ram_disponible-aleatorio_ram
 
-def usuarios(escenario, usuario, cajero):
-    global tiempo_espera
-    global tiempo_final
-    tiempo_turno = escenario.now
-    print("El %s en el minuto %2.f" %(usuario, tiempo_turno))
-    with cajero.request() as espera:
-        yield espera
-        tiempo_inicial_espera = escenario.now
-        espera = tiempo_inicial_espera * tiempo_turno
-        tiempo_espera = tiempo_espera + espera
-        print("El %s pasa con el cajero en el minuto %.2f y espera %2.f minutos" %(usuario, tiempo_inicial_espera, espera))
-        yield escenario.process(servicio(usuario))
-        dejar_servicio = escenario.now
-        print("El %s deja el cajero al minuto %2.f " %(usuario, dejar_servicio))
-        tiempo_final = dejar_servicio
-
-def iniciaSimulacion(escenario, cajero):
-    i = 0
-    for i in range(total_usuarios):
-        aleatorio = random.random()
-        distribucion = -tiempo_llegada * math.log(aleatorio)
-        yield escenario.timeout(distribucion)
-        i+=1
-        escenario.process(usuarios(escenario, 'usuario %d' %i, cajero))
+    else:
+        pass
 
 
-escenario = simpy.Environment()
-cajero = simpy.Resource(escenario, numero_cajero)
-escenario.process(iniciaSimulacion(escenario, cajero))
-escenario.run()
+def onReady(): #Manda a siguiente proceso o asigna tiempo de espera
+    global registros_para_instrucciones_disponible
+    aleatorio_instrucciones = random.randint(1, 10)
+    if(aleatorio_instrucciones<=registros_para_instrucciones_disponible):
+        pass
+def onRunning():
+    pass
+def onSimulation():
+    pass
+def terminated():#Posible proceso post onRunnning
+    pass
